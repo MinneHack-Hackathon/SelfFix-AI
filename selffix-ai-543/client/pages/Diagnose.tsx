@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ChevronDown, Mic, MicOff, Upload, X, Zap } from "lucide-react";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { ImageUploader } from "@/components/ImageUploader";
@@ -40,18 +40,17 @@ export default function Diagnose() {
     });
   };
 
-  const handleVoiceTranscript = (transcript: string) => {
+  const handleVoiceTranscript = useCallback((transcript: string) => {
+    if (!transcript) return;
     setVoiceTranscript(transcript);
-    if (transcript) {
-      setFormData((prev) => ({
-        ...prev,
-        custom_description:
-          prev.custom_description +
-          (prev.custom_description ? " " : "") +
-          transcript,
-      }));
-    }
-  };
+    setFormData((prev) => ({
+      ...prev,
+      custom_description:
+        prev.custom_description +
+        (prev.custom_description ? " " : "") +
+        transcript,
+    }));
+  }, []);
 
   const handleImageUpload = (file: File | null) => {
     setFormData((prev) => ({
