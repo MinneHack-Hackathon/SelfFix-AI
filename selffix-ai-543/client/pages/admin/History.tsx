@@ -10,12 +10,19 @@ export default function History() {
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
 
-  // Load cases from localStorage
+  // Load cases from API
   useEffect(() => {
-    const storedCases = localStorage.getItem("adminCases");
-    if (storedCases) {
-      setCases(JSON.parse(storedCases));
-    }
+    const fetchCases = async () => {
+      try {
+        const response = await fetch('/api/cases');
+        if (!response.ok) throw new Error('Failed to fetch cases');
+        const data = await response.json();
+        setCases(data);
+      } catch (error) {
+        console.error('Error fetching cases:', error);
+      }
+    };
+    fetchCases();
   }, []);
 
   const handleEdit = (caseData: Case) => {
@@ -24,15 +31,23 @@ export default function History() {
     alert(`Edit functionality for case #${caseData.id} - Coming soon`);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     if (
       confirm(
         "Are you sure you want to delete this case? This action cannot be undone."
       )
     ) {
-      const updatedCases = cases.filter((c) => c.id !== id);
-      setCases(updatedCases);
-      localStorage.setItem("adminCases", JSON.stringify(updatedCases));
+      try {
+        const response = await fetch(`/api/cases/${id}`, {
+          method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Failed to delete case');
+
+        setCases(prev => prev.filter((c) => c.id !== id));
+      } catch (error) {
+        console.error('Error deleting case:', error);
+        alert('Failed to delete case. Please try again.');
+      }
     }
   };
 
@@ -202,11 +217,10 @@ export default function History() {
                   <div className="bg-slate-50 p-3 rounded-lg">
                     <p className="text-xs text-slate-600 mb-1">Status</p>
                     <p
-                      className={`font-semibold ${
-                        selectedCase.successful
+                      className={`font-semibold ${selectedCase.successful
                           ? "text-green-700"
                           : "text-red-700"
-                      }`}
+                        }`}
                     >
                       {selectedCase.successful ? "Successful" : "Failed"}
                     </p>

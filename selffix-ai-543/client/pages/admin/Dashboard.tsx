@@ -17,11 +17,13 @@ const MOCK_CASES: Case[] = [
     diagnosticSteps: ["Checked thermostat", "Tested evaporator fan"],
     rootCause: "Evaporator Fan Motor Failure",
     partReplaced: "Evaporator Fan Motor",
-    partCost: 40,
+    partCost: "40",
     laborTimeMinutes: 45,
     diyFeasibility: "Moderate",
     successful: true,
     date: "2024-01-14",
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
     id: 2,
@@ -33,11 +35,13 @@ const MOCK_CASES: Case[] = [
     diagnosticSteps: ["Inspected drain pump", "Checked hoses"],
     rootCause: "Pump Failure",
     partReplaced: "Drain Pump",
-    partCost: 65,
+    partCost: "65",
     laborTimeMinutes: 60,
     diyFeasibility: "Moderate",
     successful: true,
     date: "2024-01-13",
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
     id: 3,
@@ -49,11 +53,13 @@ const MOCK_CASES: Case[] = [
     diagnosticSteps: ["Checked spray arm assembly", "Tested motor"],
     rootCause: "Spray Arm Assembly Blockage",
     partReplaced: "Spray Arm Assembly",
-    partCost: 25,
+    partCost: "25",
     laborTimeMinutes: 30,
     diyFeasibility: "Easy",
     successful: true,
     date: "2024-01-12",
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 ];
 
@@ -61,21 +67,24 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [cases, setCases] = useState<Case[]>([]);
 
-  // Load cases from localStorage or use mock data
+  // Load cases from API
   useEffect(() => {
-    const storedCases = localStorage.getItem("adminCases");
-    if (storedCases) {
-      setCases(JSON.parse(storedCases));
-    } else {
-      // Initialize with mock data
-      setCases(MOCK_CASES);
-      localStorage.setItem("adminCases", JSON.stringify(MOCK_CASES));
-    }
+    const fetchCases = async () => {
+      try {
+        const response = await fetch('/api/cases');
+        if (!response.ok) throw new Error('Failed to fetch cases');
+        const data = await response.json();
+        setCases(data);
+      } catch (error) {
+        console.error('Error fetching cases:', error);
+      }
+    };
+    fetchCases();
   }, []);
 
   // Calculate statistics
   const totalCases = cases.length;
-  
+
   const getMostCommonIssue = (): string => {
     if (cases.length === 0) return "N/A";
     const issueCounts: Record<string, number> = {};
@@ -87,7 +96,7 @@ export default function AdminDashboard() {
 
   const getAverageCost = (): number => {
     if (cases.length === 0) return 0;
-    const total = cases.reduce((sum, c) => sum + c.partCost, 0);
+    const total = cases.reduce((sum, c) => sum + parseFloat(c.partCost || "0"), 0);
     return Math.round(total / cases.length);
   };
 

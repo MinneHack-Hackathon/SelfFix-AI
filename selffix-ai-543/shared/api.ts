@@ -10,3 +10,28 @@
 export interface DemoResponse {
   message: string;
 }
+
+/**
+ * Case interface - matches database schema
+ */
+export interface Case {
+  id: number;
+  applianceType: string;
+  brand: string;
+  model: string;
+  symptoms: string[];
+  additionalNotes: string | null;
+  diagnosticSteps: string[];
+  rootCause: string;
+  partReplaced: string;
+  partCost: string;
+  laborTimeMinutes: number;
+  diyFeasibility: 'Easy' | 'Moderate' | 'Professional Required';
+  successful: boolean;
+  date: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type CreateCaseRequest = Omit<Case, 'id' | 'createdAt' | 'updatedAt'>;
+export type CreateCaseResponse = Case;
