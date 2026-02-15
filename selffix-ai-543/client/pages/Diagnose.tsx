@@ -3,10 +3,10 @@ import { useState } from "react";
 import { ChevronDown, Mic, MicOff, Upload, X, Zap } from "lucide-react";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { ImageUploader } from "@/components/ImageUploader";
+import { api } from "@/lib/api";
 
 interface DiagnosisData {
   appliance_type: string;
-  selected_symptoms: string[];
   custom_description: string;
   image: File | null;
 }
@@ -20,82 +20,24 @@ const APPLIANCES = [
   "Oven",
 ];
 
-const SYMPTOMS_MAP: Record<string, string[]> = {
-  "Refrigerator": [
-    "Not cooling",
-    "Freezer works, fridge warm",
-    "Water leaking",
-    "Loud clicking noise",
-    "Excess frost buildup",
-  ],
-  "Washing Machine": [
-    "Won't drain",
-    "Excessive vibration",
-    "Clothes not clean",
-    "Water leaking",
-    "Won't spin",
-  ],
-  "Dishwasher": [
-    "Dishes not clean",
-    "Water leaking",
-    "Won't start",
-    "Loud grinding noise",
-    "Door won't close",
-  ],
-  "AC Unit": [
-    "Not cooling",
-    "Weak airflow",
-    "Strange noises",
-    "Refrigerant leak",
-    "Thermostat not responding",
-  ],
-  "Microwave": [
-    "Not heating",
-    "Spark in microwave",
-    "Turntable not rotating",
-    "Buttons not working",
-    "Food not cooking evenly",
-  ],
-  "Oven": [
-    "Not heating",
-    "Uneven temperature",
-    "Won't turn on",
-    "Display not working",
-    "Door latch broken",
-  ],
-};
-
 export default function Diagnose() {
   const navigate = useNavigate();
   const location = useLocation();
   const [formData, setFormData] = useState<DiagnosisData>({
     appliance_type: "",
-    selected_symptoms: [],
     custom_description: "",
     image: null,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState("");
 
-  const symptoms = formData.appliance_type
-    ? SYMPTOMS_MAP[formData.appliance_type] || []
-    : [];
+
 
   const handleApplianceChange = (value: string) => {
     setFormData({
       ...formData,
       appliance_type: value,
-      selected_symptoms: [], // Reset symptoms when appliance changes
     });
-  };
-
-  const toggleSymptom = (symptom: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      selected_symptoms: prev.selected_symptoms.includes(symptom)
-        ? prev.selected_symptoms.filter((s) => s !== symptom)
-        : [...prev.selected_symptoms, symptom],
-    }));
   };
 
   const handleVoiceTranscript = (transcript: string) => {
@@ -124,60 +66,25 @@ export default function Diagnose() {
       return;
     }
 
-    if (formData.selected_symptoms.length === 0) {
-      alert("Please select at least one symptom");
+    if (!formData.custom_description && !formData.image && !voiceTranscript) {
+      alert("Please describe the issue, conduct a voice recording, or upload an image");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      const analysisData = {
-        appliance_type: formData.appliance_type,
-        selected_symptoms: formData.selected_symptoms,
-        custom_description: formData.custom_description,
-        has_image: !!formData.image,
-      };
+      console.log("Submitting diagnosis...", formData);
+      const result = await api.diagnose(formData);
+      console.log("Diagnosis result received:", result);
+      localStorage.setItem("diagnosisResult", JSON.stringify(result));
 
-      // Mock API response
-      const mockResponse = {
-        diagnosis: {
-          most_likely_issue: "Evaporator Fan Motor Failure",
-          confidence_percent: 74,
-          severity: "High",
-        },
-        cost_analysis: {
-          estimated_repair_cost: 40,
-          estimated_replacement_cost: 900,
-          estimated_savings: 860,
-        },
-        environmental_impact: {
-          carbon_saved_kg: 390,
-        },
-        repair_details: {
-          difficulty_level: "Moderate",
-          tools_required: ["Screwdriver", "Replacement fan motor"],
-          steps: [
-            "Unplug refrigerator from power outlet",
-            "Remove the rear access panel (usually 4-6 screws)",
-            "Disconnect the faulty fan motor from the housing",
-            "Install the new fan motor in the same position",
-            "Reassemble the panel and test for proper operation",
-          ],
-          safety_warning:
-            "Always unplug before servicing. Do not attempt if you're not comfortable with basic mechanical tasks.",
-        },
-      };
-
-      // Store result in localStorage
-      localStorage.setItem("diagnosisResult", JSON.stringify(mockResponse));
-
+      console.log("Navigating to /output");
       // Navigate to results page
-      navigate("/result");
+      navigate("/output");
     } catch (error) {
       console.error("Error analyzing:", error);
-      alert("Error performing analysis. Please try again.");
+      alert(error instanceof Error ? error.message : "Error performing analysis. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -238,37 +145,12 @@ export default function Diagnose() {
             </div>
           </div>
 
-          {/* Symptoms */}
-          {symptoms.length > 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
-              <label className="block text-sm font-semibold text-slate-900 mb-6">
-                What's happening? (Select all that apply)
-              </label>
-              <div className="space-y-3">
-                {symptoms.map((symptom) => (
-                  <label
-                    key={symptom}
-                    className="flex items-center gap-3 cursor-pointer group"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={formData.selected_symptoms.includes(symptom)}
-                      onChange={() => toggleSymptom(symptom)}
-                      className="w-5 h-5 rounded border-slate-300 text-green-500 focus:ring-green-500"
-                    />
-                    <span className="text-slate-700 group-hover:text-slate-900 font-medium">
-                      {symptom}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
+
 
           {/* Text Description */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
             <label className="block text-sm font-semibold text-slate-900 mb-4">
-              Optional: Describe the issue in your own words
+              Describe the issue in your own words
             </label>
             <textarea
               value={formData.custom_description}

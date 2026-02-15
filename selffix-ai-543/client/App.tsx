@@ -27,7 +27,7 @@ export const App = () => (
           {/* User-facing routes */}
           <Route path="/" element={<Index />} />
           <Route path="/diagnose" element={<Diagnose />} />
-          <Route path="/result" element={<Result />} />
+          <Route path="/output" element={<Result />} />
 
           {/* Admin routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
