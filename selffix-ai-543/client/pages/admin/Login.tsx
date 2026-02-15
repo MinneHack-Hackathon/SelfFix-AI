@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Zap } from "lucide-react";
+import { Zap, Home } from "lucide-react";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -32,7 +32,15 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center p-6 relative">
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-6 left-6 flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium transition-colors"
+      >
+        <Home className="w-5 h-5" />
+        <span>Back to Home</span>
+      </button>
+
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
@@ -122,7 +130,7 @@ export default function AdminLogin() {
           </form>
 
           {/* Demo Credentials */}
-          <div className="mt-8 pt-6 border-t border-slate-200">
+          {/* <div className="mt-8 pt-6 border-t border-slate-200">
             <p className="text-xs text-slate-500 mb-3">Demo Credentials:</p>
             <div className="space-y-2 bg-slate-50 p-3 rounded-lg">
               <p className="text-xs text-slate-600">
@@ -132,7 +140,7 @@ export default function AdminLogin() {
                 <span className="font-semibold">Password:</span> 123456
               </p>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Footer */}

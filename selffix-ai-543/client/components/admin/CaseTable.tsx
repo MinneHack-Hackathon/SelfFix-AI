@@ -1,22 +1,8 @@
 import { useState } from "react";
+import { Case } from "@shared/api.ts";
 import { Eye, Edit2, Trash2, ChevronDown } from "lucide-react";
 
-export interface Case {
-  id: number;
-  applianceType: string;
-  brand: string;
-  model: string;
-  symptoms: string[];
-  additionalNotes: string;
-  diagnosticSteps: string[];
-  rootCause: string;
-  partReplaced: string;
-  partCost: number;
-  laborTimeMinutes: number;
-  diyFeasibility: "Easy" | "Moderate" | "Professional Required";
-  successful: boolean;
-  date: string;
-}
+export type { Case };
 
 interface CaseTableProps {
   cases: Case[];
@@ -45,7 +31,7 @@ export function CaseTable({
       if (sortBy === "date") {
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       } else {
-        return b.partCost - a.partCost;
+        return parseFloat(b.partCost) - parseFloat(a.partCost);
       }
     });
 
@@ -129,11 +115,10 @@ export function CaseTable({
                 </td>
                 <td className="px-6 py-4 text-sm">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      caseData.successful
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${caseData.successful
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                      }`}
                   >
                     {caseData.successful ? "Success" : "Failed"}
                   </span>

@@ -7,30 +7,47 @@ import { Case } from "@/components/admin/CaseTable";
 export default function LogCase() {
   const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmitCase = (formData: Omit<Case, "id" | "date">) => {
-    // Generate unique ID
-    const allCases = JSON.parse(localStorage.getItem("adminCases") || "[]") as Case[];
-    const newId = Math.max(...allCases.map((c) => c.id), 0) + 1;
+  const handleSubmitCase = async (formData: Omit<Case, "id" | "date">) => {
+    try {
+      setIsSubmitting(true);
+      // Transform data to match backend schema
+      const apiData = {
+        ...formData,
+        partCost: String(formData.partCost), // Convert number to string for numeric type
+        date: new Date().toISOString().split('T')[0], // Add current date in YYYY-MM-DD format
+      };
 
-    // Create new case with ID and date
-    const newCase: Case = {
-      ...formData,
-      id: newId,
-      date: new Date().toISOString().split("T")[0],
-    };
+      // Submit to API
+      const response = await fetch('/api/cases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiData),
+      });
 
-    // Save to localStorage
-    allCases.push(newCase);
-    localStorage.setItem("adminCases", JSON.stringify(allCases));
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error('API error:', errorData);
+        throw new Error('Failed to create case');
+      }
 
-    // Show success message
-    setSuccessMessage(`Case #${newId} logged successfully!`);
+      const newCase = await response.json();
 
-    // Redirect after 2 seconds
-    setTimeout(() => {
-      navigate("/admin/dashboard");
-    }, 2000);
+      // Show success message
+      setSuccessMessage(`Case #${newCase.id} logged successfully!`);
+
+      // Redirect after 2 seconds
+      setTimeout(() => {
+        navigate("/admin/dashboard");
+      }, 2000);
+    } catch (error) {
+      console.error('Error creating case:', error);
+      setSuccessMessage('Failed to create case. Please try again.');
+      setIsSubmitting(false); // Reset only on error, since redirect happens on success
+    }
   };
 
   return (
@@ -55,7 +72,7 @@ export default function LogCase() {
         )}
 
         {/* Form */}
-        <CaseForm onSubmit={handleSubmitCase} />
+        <CaseForm onSubmit={handleSubmitCase} isLoading={isSubmitting} />
       </div>
     </AdminLayout>
   );

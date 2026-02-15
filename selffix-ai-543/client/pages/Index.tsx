@@ -16,10 +16,10 @@ export default function Index() {
             <span className="text-xl font-bold text-slate-900">SelfFix AI</span>
           </div>
           <button
-            onClick={() => navigate("/diagnose")}
-            className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors"
+            onClick={() => navigate("/admin/dashboard")}
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-105"
           >
-            Start Now
+            Admin Dashboard
           </button>
         </div>
       </header>

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Loader2 } from "lucide-react";
 import { Case } from "./CaseTable";
 
 interface CaseFormProps {
-  onSubmit: (caseData: Omit<Case, "id" | "date">) => void;
+  onSubmit: (caseData: Omit<Case, "id" | "date" | "createdAt" | "updatedAt">) => void;
   initialData?: Case;
+  isLoading?: boolean;
 }
 
 const APPLIANCES = [
@@ -84,7 +85,7 @@ const ROOT_CAUSES = [
   "Other",
 ];
 
-export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
+export function CaseForm({ onSubmit, initialData, isLoading }: CaseFormProps) {
   const [formData, setFormData] = useState({
     applianceType: initialData?.applianceType || "",
     brand: initialData?.brand || "",
@@ -94,7 +95,7 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
     diagnosticSteps: initialData?.diagnosticSteps || [],
     rootCause: initialData?.rootCause || "",
     partReplaced: initialData?.partReplaced || "",
-    partCost: initialData?.partCost || 0,
+    partCost: typeof initialData?.partCost === 'string' ? parseFloat(initialData.partCost) : (initialData?.partCost || 0),
     laborTimeMinutes: initialData?.laborTimeMinutes || 0,
     diyFeasibility: initialData?.diyFeasibility || ("Easy" as const),
     successful: initialData?.successful !== undefined ? initialData.successful : true,
@@ -144,7 +145,7 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
       newErrors.symptoms = "At least one symptom is required";
     if (!formData.rootCause) newErrors.rootCause = "Root cause is required";
     if (!formData.partReplaced) newErrors.partReplaced = "Part name is required";
-    if (formData.partCost < 0) newErrors.partCost = "Cost cannot be negative";
+    if (Number(formData.partCost) < 0) newErrors.partCost = "Cost cannot be negative";
     if (formData.laborTimeMinutes < 0)
       newErrors.laborTimeMinutes = "Labor time cannot be negative";
 
@@ -157,7 +158,7 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
 
     if (!validateForm()) return;
 
-    onSubmit(formData);
+    onSubmit(formData as any);
   };
 
   return (
@@ -169,12 +170,12 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
         </label>
         <select
           value={formData.applianceType}
+          disabled={isLoading}
           onChange={(e) =>
             setFormData({ ...formData, applianceType: e.target.value })
           }
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
-            errors.applianceType ? "border-red-300" : "border-slate-300"
-          }`}
+          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.applianceType ? "border-red-300" : "border-slate-300"
+            }`}
         >
           <option value="">Select appliance...</option>
           {APPLIANCES.map((app) => (
@@ -196,10 +197,10 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
           </label>
           <select
             value={formData.brand}
+            disabled={isLoading}
             onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
-              errors.brand ? "border-red-300" : "border-slate-300"
-            }`}
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.brand ? "border-red-300" : "border-slate-300"
+              }`}
           >
             <option value="">Select brand...</option>
             {BRANDS.map((brand) => (
@@ -220,11 +221,11 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
           <input
             type="text"
             value={formData.model}
+            disabled={isLoading}
             onChange={(e) => setFormData({ ...formData, model: e.target.value })}
             placeholder="e.g. RF29FMEDBSR"
-            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
-              errors.model ? "border-red-300" : "border-slate-300"
-            }`}
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.model ? "border-red-300" : "border-slate-300"
+              }`}
           />
           {errors.model && (
             <p className="mt-1 text-sm text-red-600">{errors.model}</p>
@@ -243,6 +244,7 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
               <label key={symptom} className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
+                  disabled={isLoading}
                   checked={formData.symptoms.includes(symptom)}
                   onChange={() => toggleSymptom(symptom)}
                   className="w-4 h-4 rounded border-slate-300 text-green-500"
@@ -264,6 +266,7 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
         </label>
         <textarea
           value={formData.additionalNotes}
+          disabled={isLoading}
           onChange={(e) =>
             setFormData({ ...formData, additionalNotes: e.target.value })
           }
@@ -286,8 +289,9 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
               </div>
               <button
                 type="button"
+                disabled={isLoading}
                 onClick={() => removeDiagnosticStep(index)}
-                className="p-2 hover:bg-red-100 rounded-lg text-red-600"
+                className="p-2 hover:bg-red-100 rounded-lg text-red-600 disabled:opacity-50"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -298,6 +302,7 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
           <input
             type="text"
             value={newStep}
+            disabled={isLoading}
             onChange={(e) => setNewStep(e.target.value)}
             placeholder="Enter a diagnostic step..."
             className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -310,8 +315,9 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
           />
           <button
             type="button"
+            disabled={isLoading}
             onClick={addDiagnosticStep}
-            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center gap-2"
+            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center gap-2 disabled:bg-green-300"
           >
             <Plus className="w-4 h-4" />
             Add
@@ -326,10 +332,10 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
         </label>
         <select
           value={formData.rootCause}
+          disabled={isLoading}
           onChange={(e) => setFormData({ ...formData, rootCause: e.target.value })}
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
-            errors.rootCause ? "border-red-300" : "border-slate-300"
-          }`}
+          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.rootCause ? "border-red-300" : "border-slate-300"
+            }`}
         >
           <option value="">Select root cause...</option>
           {ROOT_CAUSES.map((cause) => (
@@ -352,13 +358,13 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
           <input
             type="text"
             value={formData.partReplaced}
+            disabled={isLoading}
             onChange={(e) =>
               setFormData({ ...formData, partReplaced: e.target.value })
             }
             placeholder="e.g. Evaporator Fan Motor"
-            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
-              errors.partReplaced ? "border-red-300" : "border-slate-300"
-            }`}
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.partReplaced ? "border-red-300" : "border-slate-300"
+              }`}
           />
           {errors.partReplaced && (
             <p className="mt-1 text-sm text-red-600">{errors.partReplaced}</p>
@@ -372,14 +378,14 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
           <input
             type="number"
             value={formData.partCost}
+            disabled={isLoading}
             onChange={(e) =>
               setFormData({ ...formData, partCost: parseFloat(e.target.value) })
             }
             min="0"
             step="0.01"
-            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
-              errors.partCost ? "border-red-300" : "border-slate-300"
-            }`}
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.partCost ? "border-red-300" : "border-slate-300"
+              }`}
           />
           {errors.partCost && (
             <p className="mt-1 text-sm text-red-600">{errors.partCost}</p>
@@ -393,6 +399,7 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
           <input
             type="number"
             value={formData.laborTimeMinutes}
+            disabled={isLoading}
             onChange={(e) =>
               setFormData({
                 ...formData,
@@ -400,9 +407,8 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
               })
             }
             min="0"
-            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
-              errors.laborTimeMinutes ? "border-red-300" : "border-slate-300"
-            }`}
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${errors.laborTimeMinutes ? "border-red-300" : "border-slate-300"
+              }`}
           />
           {errors.laborTimeMinutes && (
             <p className="mt-1 text-sm text-red-600">{errors.laborTimeMinutes}</p>
@@ -422,6 +428,7 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
                 type="radio"
                 name="diyFeasibility"
                 value={level}
+                disabled={isLoading}
                 checked={formData.diyFeasibility === level}
                 onChange={() =>
                   setFormData({ ...formData, diyFeasibility: level })
@@ -448,6 +455,7 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
               <input
                 type="radio"
                 name="successful"
+                disabled={isLoading}
                 checked={formData.successful === value}
                 onChange={() => setFormData({ ...formData, successful: value })}
                 className="w-4 h-4 border-slate-300 text-green-500"
@@ -461,9 +469,17 @@ export function CaseForm({ onSubmit, initialData }: CaseFormProps) {
       {/* Submit Button */}
       <button
         type="submit"
-        className="w-full px-6 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl"
+        disabled={isLoading}
+        className="w-full px-6 py-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        {initialData ? "Update Case" : "Submit Case"}
+        {isLoading ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Submitting...
+          </>
+        ) : (
+          initialData ? "Update Case" : "Submit Case"
+        )}
       </button>
     </form>
   );

@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
     fs: {
-      allow: ["./client", "./shared"],
+      allow: ["./client", "./shared", "."],
       deny: [".env", ".env.*", "*.{crt,pem}", "**/.git/**", "server/**"],
     },
   },
@@ -39,8 +39,16 @@ function expressPlugin(): Plugin {
     configureServer(server) {
       const app = createServer();
 
-      // Add Express app as middleware to Vite dev server
-      server.middlewares.use(app);
+      // Add Express app as middleware BEFORE Vite's internal middlewares
+      // This ensures API routes are handled before SPA fallback
+      server.middlewares.use((req, res, next) => {
+        // Only use Express for /api routes
+        if (req.url?.startsWith('/api')) {
+          app(req as any, res as any, next);
+        } else {
+          next();
+        }
+      });
     },
   };
 }
