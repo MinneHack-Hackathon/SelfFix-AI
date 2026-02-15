@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, FileText, History, LogOut, Zap } from "lucide-react";
+import { LayoutDashboard, FileText, History, LogOut, Zap, Home } from "lucide-react";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -10,6 +10,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
 
   const menuItems = [
+    {
+      label: "Home",
+      path: "/",
+      icon: Home,
+    },
     {
       label: "Dashboard",
       path: "/admin/dashboard",
@@ -56,11 +61,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${
-                  isActive
-                    ? "bg-green-100 text-green-700"
-                    : "text-slate-700 hover:bg-slate-100"
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive
+                  ? "bg-green-100 text-green-700"
+                  : "text-slate-700 hover:bg-slate-100"
+                  }`}
               >
                 <Icon className="w-5 h-5" />
                 <span>{item.label}</span>
